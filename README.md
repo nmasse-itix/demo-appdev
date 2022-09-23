@@ -1,5 +1,7 @@
 # Quarkus demo: Hibernate ORM with Panache and RESTEasy
 
+**See the gitops branch for setup instructions.**
+
 This is a minimal CRUD service exposing a couple of endpoints over REST,
 with a front-end based on Angular so you can play with it from your browser.
 
