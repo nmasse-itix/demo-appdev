@@ -119,3 +119,7 @@ Then, rebuild demo docker image with a system property that points to the DB.
 ```bash
 -Dquarkus.datasource.jdbc.url=jdbc:postgresql://<DB_SERVICE_NAME>/quarkus_test
 ```
+
+## Authors
+
+Nicolas Massé, based on the work of the Quarkus team
