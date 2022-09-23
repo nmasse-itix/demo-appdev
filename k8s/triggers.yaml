@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-listener
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-listener
+rules:
+# EventListeners need to be able to fetch all namespaced resources
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["eventlisteners", "triggerbindings", "triggertemplates", "triggers", "clusterinterceptors"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+ # secrets are only needed for GitHub/GitLab interceptors
+ # configmaps is needed for updating logging config
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+ # Permissions to create resources in associated TriggerTemplates
+- apiGroups: ["tekton.dev"]
+  resources: ["pipelineruns", "pipelineresources", "taskruns"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["serviceaccounts"]
+  verbs: ["impersonate"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tekton-listener
+subjects:
+- kind: ServiceAccount
+  name: tekton-listener
+  namespace: demo-appdev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-listener
+subjects:
+- kind: ServiceAccount
+  name: tekton-listener
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-listener
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: demo-appdev
+spec:
+  params:
+  - name: gitRepositoryURL
+    description: The git repository url
+  - name: gitRevision
+    description: The git revision to checkout
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: demo-appdev-
+    spec:
+      serviceAccountName: tekton-robot
+      pipelineRef:
+        name: build-and-deploy
+      params:
+      - name: gitRepositoryURL
+        value: $(tt.params.gitRepositoryURL)
+      - name: outputContainerImage
+        value: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
+      workspaces:
+      - name: scratch
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: demo-appdev
+spec:
+  params:
+  - name: gitRepositoryURL
+    value: $(body.repository.url)
+  - name: gitRevision
+    value: $(body.head_commit.id)
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-secret
+type: Opaque
+stringData:
+  sharedSecret: "secret"
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: demo-appdev
+spec:
+  serviceAccountName: tekton-listener
+  interceptors:
+  - ref:
+      name: "github"
+      kind: ClusterInterceptor
+      apiVersion: triggers.tekton.dev
+    params:
+    - name: "secretRef"
+      value:
+        secretName: github-secret
+        secretKey: sharedSecret
+    - name: "eventTypes"
+      value: ["push"]
+  - ref:
+      name: "cel"
+      kind: ClusterInterceptor
+      apiVersion: triggers.tekton.dev
+    params:
+    - name: "filter"
+      value: "header.match('X-GitHub-Event', 'push')"
+  bindings:
+    - ref: demo-appdev
+  template:
+    ref: demo-appdev
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: demo-appdev
+spec:
+  serviceAccountName: tekton-listener
+  triggers:
+    - triggerRef: demo-appdev
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: el-demo-appdev
+spec:
+  port:
+    targetPort: 8080
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: Edge
+  to:
+    kind: Service
+    name: el-demo-appdev
+    weight: 100
