@@ -10,7 +10,8 @@ resources:
 - task-maven-package.yaml
 - knative-service.yaml
 images:
-- name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
+- digest: sha256:3a1e968c92e026093a1af8890642e1154a3e739372eead598068696eb228f0f9
+  name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
 configurations:
 - knative-image-transformer.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
