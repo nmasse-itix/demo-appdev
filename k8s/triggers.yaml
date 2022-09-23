@@ -68,7 +68,7 @@ spec:
     spec:
       serviceAccountName: tekton-robot
       pipelineRef:
-        name: build-and-deploy
+        name: demo-appdev
       params:
       - name: gitRepositoryURL
         value: $(tt.params.gitRepositoryURL)
