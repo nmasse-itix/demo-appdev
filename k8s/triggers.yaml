@@ -127,7 +127,7 @@ spec:
       apiVersion: triggers.tekton.dev
     params:
     - name: "filter"
-      value: "header.match('X-GitHub-Event', 'push')"
+      value: "body.ref == 'refs/heads/main'"
   bindings:
     - ref: demo-appdev
   template:
