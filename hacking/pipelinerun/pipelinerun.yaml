@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: demo-appdev-
+spec:
+  serviceAccountName: tekton-robot
+  pipelineRef:
+    name: demo-appdev
+  params:
+  - name: gitRepositoryURL
+    value: https://github.com/nmasse-itix/demo-appdev.git
+  - name: outputContainerImage
+    value: image-registry.openshift-image-registry.svc.cluster.local:5000/demo-appdev/function
+  workspaces:
+  - name: scratch
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

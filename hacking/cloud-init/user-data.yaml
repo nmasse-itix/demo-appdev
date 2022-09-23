@@ -1,0 +1,53 @@
+#cloud-config
+
+users:
+- name: nicolas
+  gecos: Nicolas MASSE
+  groups: wheel
+  lock_passwd: false
+  passwd: $6$XUTB20jVVXIqh78k$L1A9Lft5JlbOtNbeDP.fOZ5giLl09LfJGGCon5uwtsIhPJoNkj4SIk08Rb6vSowOps2ik5tlUwT2ZOZ6jjr7.0
+  ssh_authorized_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPR1tt58X0+vbvsCR12gMAqr+g7vjt1Fx/qqz9EiboIs nicolas@localhost.localdomain
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFW62WJXI1ZCMfNA4w0dMpL0fsldhbEfULNGIUB0nQui nmasse@localhost.localdomain
+
+write_files:
+- path: /etc/sudoers
+  content: |
+    Defaults   !visiblepw
+    Defaults    always_set_home
+    Defaults    match_group_by_gid
+    Defaults    always_query_group_plugin
+    Defaults    env_reset
+    Defaults    env_keep =  "COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS"
+    Defaults    env_keep += "MAIL QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE"
+    Defaults    env_keep += "LC_COLLATE LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES"
+    Defaults    env_keep += "LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE"
+    Defaults    env_keep += "LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY"
+    Defaults    secure_path = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/snapd/snap/bin
+    root    ALL=(ALL)       ALL
+    %wheel  ALL=(ALL)       NOPASSWD: ALL
+    #includedir /etc/sudoers.d
+  permissions: '0440'
+  append: false
+
+- path: /root/bootstrap.sh
+  content: |
+    #!/bin/bash
+    set -Eeuo pipefail
+    PGSETUP_INITDB_OPTIONS=--auth-host=scram-sha-256 postgresql-setup --initdb --unit postgresql
+    sed -i.bak -E "s/^#*\s*listen_addresses\s*=\s*'[^']*'/listen_addresses = '0.0.0.0'/" /var/lib/pgsql/data/postgresql.conf
+    cat >> /var/lib/pgsql/data/pg_hba.conf <<EOF
+    host    all             all             0.0.0.0/0               scram-sha-256
+    EOF
+    systemctl start postgresql.service
+    systemctl enable postgresql.service
+    cd /tmp
+    sudo -u postgres psql -c "CREATE USER appli WITH ENCRYPTED PASSWORD 'secret'"
+    sudo -u postgres psql -c "CREATE DATABASE appli OWNER 'appli';"
+  permissions: '0755'
+
+packages:
+- postgresql-server
+
+runcmd:
+- [ "/root/bootstrap.sh" ]
