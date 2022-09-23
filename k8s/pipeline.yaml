@@ -6,11 +6,6 @@ spec:
   workspaces:
   - name: scratch
   params:
-  - name: buildahPlatforms
-    type: array
-    default:
-    - linux/x86_64
-    - linux/arm64/v8
   - name: gitRepositoryURL
     type: string
   - name: outputContainerImage
@@ -38,9 +33,6 @@ spec:
       value: latest
     - name: outputContainerImage
       value: "$(params.outputContainerImage)"
-    - name: buildahPlatforms
-      value:
-      - "$(params.buildahPlatforms[*])"
     workspaces:
     - name: src
       workspace: scratch

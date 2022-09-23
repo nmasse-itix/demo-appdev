@@ -8,6 +8,9 @@ spec:
     type: string
   - name: outputContainerImage
     type: string
+  results:
+  - name: imageDigest
+    description: The digest of the built image manifest
   workspaces:
   - name: src
     mountPath: /src
@@ -18,6 +21,8 @@ spec:
     image: quay.io/containers/buildah:$(params.buildahVersion)
     workingDir: /src
     env:
+    - name: RESULT_IMAGE_DIGEST
+      value: "$(results.imageDigest.path)"
     - name: TARGET_IMAGE
       value: "$(params.outputContainerImage)"
     securityContext:
@@ -32,7 +37,7 @@ spec:
 
       function build () {
         echo "========================================================="
-        echo " buildah build $TARGET_IMAGE
+        echo " buildah build $TARGET_IMAGE"
         echo "========================================================="
         echo
 
@@ -50,7 +55,13 @@ spec:
         echo " buildah push $1"
         echo "========================================================="
         echo
-        buildah manifest push --storage-driver vfs --all tekton "docker://$1"
+
+        # buildah requires a slight modification to the push secret provided by the service
+        # account to use it for pushing the image
+        cp /var/run/secrets/openshift.io/push/.dockercfg /tmp
+        echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/push/.dockercfg) }" > /tmp/.dockercfg
+
+        buildah manifest push --storage-driver vfs --all tekton "docker://$1" --digestfile "$RESULT_IMAGE_DIGEST" --tls-verify=false --authfile /tmp/.dockercfg
         echo
       }
 
