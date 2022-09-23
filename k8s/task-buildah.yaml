@@ -6,6 +6,7 @@ spec:
   params:
   - name: buildahVersion
     type: string
+    default: latest
   - name: outputContainerImage
     type: string
   results:
@@ -46,7 +47,7 @@ spec:
           extra_args="$extra_args --file $CONTAINERFILE"
         fi
 
-        buildah bud --storage-driver vfs --manifest tekton -t $TARGET_IMAGE $extra_args .
+        buildah bud --storage-driver vfs --manifest tekton -t $TARGET_IMAGE $extra_args -f src/main/docker/Dockerfile.native .
         echo
       }
 

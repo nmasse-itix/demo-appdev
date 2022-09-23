@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: maven-package
+spec:
+  params:
+  - name: mavenContainerImage
+    type: string
+    default: quay.io/quarkus/ubi-quarkus-mandrel:22.2-java17
+  workspaces:
+  - name: src
+    mountPath: /project
+  steps:
+  - name: maven-package
+    image: $(params.mavenContainerImage)
+    workingDir: /project
+    env:
+    - name: HOME
+      value: /project
+    script: |
+      #!/bin/bash
+
+      set -Eeuo pipefail
+
+      function maven_package () {
+        echo "========================================================="
+        echo " maven package"
+        echo "========================================================="
+        echo
+        ./mvnw package -DskipTests=true -Pnative
+        echo
+      }
+
+      maven_package
+
+      exit 0      

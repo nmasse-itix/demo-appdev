@@ -24,13 +24,21 @@ spec:
       subPath: src
     taskRef:
       name: git-clone
+  # Build the Quarkus app
+  - name: maven-package
+    runAfter:
+    - git-clone
+    workspaces:
+    - name: src
+      workspace: scratch
+      subPath: src
+    taskRef:
+      name: maven-package
   # Build and push the container images
   - name: buildah
     runAfter:
-    - git-clone
+    - maven-package
     params:
-    - name: buildahVersion
-      value: latest
     - name: outputContainerImage
       value: "$(params.outputContainerImage)"
     workspaces:
