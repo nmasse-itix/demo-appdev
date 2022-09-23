@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: demo-appdev
+spec:
+  workspaces:
+  - name: scratch
+  params:
+  - name: buildahPlatforms
+    type: array
+    default:
+    - linux/x86_64
+    - linux/arm64/v8
+  - name: gitRepositoryURL
+    type: string
+  - name: outputContainerImage
+    type: string
+  tasks:
+  # Clone the git repository
+  - name: git-clone
+    params:
+    - name: url
+      value: "$(params.gitRepositoryURL)"
+    - name: verbose
+      value: "false"
+    workspaces:
+    - name: output
+      workspace: scratch
+      subPath: src
+    taskRef:
+      name: git-clone
+  # Build and push the container images
+  - name: buildah
+    runAfter:
+    - git-clone
+    params:
+    - name: buildahVersion
+      value: latest
+    - name: outputContainerImage
+      value: "$(params.outputContainerImage)"
+    - name: buildahPlatforms
+      value:
+      - "$(params.buildahPlatforms[*])"
+    workspaces:
+    - name: src
+      workspace: scratch
+      subPath: src
+    - name: containers
+      workspace: scratch
+      subPath: containers
+    taskRef:
+      name: buildah
