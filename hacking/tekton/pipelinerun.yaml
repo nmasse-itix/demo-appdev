@@ -10,7 +10,7 @@ spec:
   - name: gitRepositoryURL
     value: https://github.com/nmasse-itix/demo-appdev.git
   - name: outputContainerImage
-    value: image-registry.openshift-image-registry.svc.cluster.local:5000/demo-appdev/function
+    value: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
   workspaces:
   - name: scratch
     volumeClaimTemplate:

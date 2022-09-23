@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: deploy-
+spec:
+  serviceAccountName: tekton-robot
+  taskRef:
+    name: deploy
+  params:
+  - name: imageDigest
+    value: sha256:7977a31c6829d4629698ae5f3dcd5691e90f83bed1b336bff16d2afafa12cba4
+  workspaces:
+  - emptyDir: {}
+    name: src
+  debug:
+    breakpoint: ["onFailure"]

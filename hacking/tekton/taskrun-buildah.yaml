@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: buildah-
+spec:
+  serviceAccountName: tekton-robot
+  taskRef:
+    name: buildah
+  params:
+  - name: outputContainerImage
+    value: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
+  workspaces:
+  - emptyDir: {}
+    name: src
+  - emptyDir: {}
+    name: containers
+  debug:
+    breakpoint: ["onFailure"]

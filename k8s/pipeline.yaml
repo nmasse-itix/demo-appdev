@@ -12,10 +12,12 @@ spec:
     type: string
   tasks:
   # Clone the git repository
-  - name: git-clone
+  - name: git-clone-src
     params:
     - name: url
       value: "$(params.gitRepositoryURL)"
+    - name: revision
+      value: "main"
     - name: verbose
       value: "false"
     workspaces:
@@ -24,10 +26,25 @@ spec:
       subPath: src
     taskRef:
       name: git-clone
+  # Clone the git repository (GitOps)
+  - name: git-clone-gitops
+    params:
+    - name: url
+      value: "$(params.gitRepositoryURL)"
+    - name: revision
+      value: "gitops"
+    - name: verbose
+      value: "false"
+    workspaces:
+    - name: output
+      workspace: scratch
+      subPath: gitops
+    taskRef:
+      name: git-clone
   # Build the Quarkus app
   - name: maven-package
     runAfter:
-    - git-clone
+    - git-clone-src
     workspaces:
     - name: src
       workspace: scratch
@@ -50,3 +67,17 @@ spec:
       subPath: containers
     taskRef:
       name: buildah
+  # Deploy the new version
+  - name: deploy
+    runAfter:
+    - buildah
+    - git-clone-gitops
+    params:
+    - name: imageDigest
+      value: "$(tasks.buildah.results.imageDigest)"
+    workspaces:
+    - name: src
+      workspace: scratch
+      subPath: gitops
+    taskRef:
+      name: deploy

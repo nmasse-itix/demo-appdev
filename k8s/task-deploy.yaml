@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  params:
+  - name: kustomizeImage
+    type: string
+    default: k8s.gcr.io/kustomize/kustomize:v4.5.5
+  - name: gitImage
+    type: string
+    default: docker.io/alpine/git:v2.26.2
+  - name: imageDigest
+    description: The digest of the last built image
+  workspaces:
+  - name: src
+    mountPath: /src
+  steps:
+  - name: kustomize
+    image: $(params.kustomizeImage)
+    workingDir: /src/k8s
+    env:
+    - name: IMAGE_DIGEST
+      value: "$(params.imageDigest)"
+    script: |
+      #!/bin/bash
+
+      set -Eeuo pipefail
+
+      echo "========================================================="
+      echo " kustomize edit set image"
+      echo "========================================================="
+      echo
+
+      echo "Setting image tag to digest $IMAGE_DIGEST..."
+      echo
+
+      kustomize edit set image function@$IMAGE_DIGEST
+
+      exit 0
+  - name: git-push
+    image: $(params.gitImage)
+    workingDir: /src
+    env:
+    - name: IMAGE_DIGEST
+      value: "$(params.imageDigest)"
+    script: |
+      #!/bin/bash
+
+      set -Eeuo pipefail
+
+      echo "========================================================="
+      echo " git push"
+      echo "========================================================="
+      echo
+
+      git add k8s/kustomization.yaml
+      git commit -m 'deploy image $IMAGE_DIGEST'
+      git push
+
+      exit 0

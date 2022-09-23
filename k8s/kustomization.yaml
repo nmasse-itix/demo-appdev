@@ -1,0 +1,17 @@
+resources:
+- imagestream.yaml
+- pipeline.yaml
+- rolebinding.yaml
+- role.yaml
+- serviceaccount.yaml
+- task-buildah.yaml
+- task-deploy.yaml
+- task-git-clone.yaml
+- task-maven-package.yaml
+- knative-service.yaml
+images:
+- name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
+configurations:
+- knative-image-transformer.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization

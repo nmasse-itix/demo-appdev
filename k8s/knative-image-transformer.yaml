@@ -1,0 +1,5 @@
+images:
+- path: spec/template/spec/containers/image
+  kind: Service
+  version: serving.knative.dev/v1
+

@@ -26,6 +26,8 @@ spec:
       value: "$(results.imageDigest.path)"
     - name: TARGET_IMAGE
       value: "$(params.outputContainerImage)"
+    - name: "CONTAINERFILE"
+      value: "src/main/docker/Dockerfile.native"
     securityContext:
       capabilities:
         add:
@@ -47,27 +49,31 @@ spec:
           extra_args="$extra_args --file $CONTAINERFILE"
         fi
 
-        buildah bud --storage-driver vfs --manifest tekton -t $TARGET_IMAGE $extra_args -f src/main/docker/Dockerfile.native .
+        buildah bud --storage-driver vfs -t localhost/build:latest $extra_args .
         echo
       }
 
       function push () {
         echo "========================================================="
-        echo " buildah push $1"
+        echo " buildah push $TARGET_IMAGE"
         echo "========================================================="
         echo
 
-        # buildah requires a slight modification to the push secret provided by the service
-        # account to use it for pushing the image
-        cp /var/run/secrets/openshift.io/push/.dockercfg /tmp
-        echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/push/.dockercfg) }" > /tmp/.dockercfg
-
-        buildah manifest push --storage-driver vfs --all tekton "docker://$1" --digestfile "$RESULT_IMAGE_DIGEST" --tls-verify=false --authfile /tmp/.dockercfg
+        buildah push --storage-driver vfs --digestfile "$RESULT_IMAGE_DIGEST" localhost/build:latest "docker://$1"
         echo
       }
 
-      build
+      function login () {
+        echo "========================================================="
+        echo " buildah login $1"
+        echo "========================================================="
+        echo
+        buildah login -u sa -p $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) "$1"
+        echo
+      }
 
+      login image-registry.openshift-image-registry.svc:5000
+      build
       push "$TARGET_IMAGE:latest"
 
       exit 0      
