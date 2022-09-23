@@ -79,5 +79,8 @@ spec:
     - name: src
       workspace: scratch
       subPath: gitops
+    - name: home
+      workspace: scratch
+      subPath: tekton
     taskRef:
       name: deploy

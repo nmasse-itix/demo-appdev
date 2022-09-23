@@ -15,17 +15,21 @@ spec:
   workspaces:
   - name: src
     mountPath: /src
+  - name: home
+    mountPath: /home/tekton
   steps:
   - name: kustomize
     image: $(params.kustomizeImage)
     workingDir: /src/k8s
     env:
+    - name: HOME
+      value: /home/tekton
     - name: IMAGE_DIGEST
       value: "$(params.imageDigest)"
     script: |
-      #!/bin/bash
+      #!/bin/sh
 
-      set -Eeuo pipefail
+      set -euo pipefail
 
       echo "========================================================="
       echo " kustomize edit set image"
@@ -35,19 +39,24 @@ spec:
       echo "Setting image tag to digest $IMAGE_DIGEST..."
       echo
 
-      kustomize edit set image function@$IMAGE_DIGEST
+      kustomize edit set image image-registry.openshift-image-registry.svc:5000/demo-appdev/function@$IMAGE_DIGEST
 
       exit 0
   - name: git-push
     image: $(params.gitImage)
     workingDir: /src
     env:
+    - name: HOME
+      value: /home/tekton
     - name: IMAGE_DIGEST
       value: "$(params.imageDigest)"
     script: |
-      #!/bin/bash
+      #!/bin/sh
 
-      set -Eeuo pipefail
+      set -euo pipefail
+
+      git config --global user.email "nmasse@redhat.com"
+      git config --global user.name "GitOps Tekton Bot"
 
       echo "========================================================="
       echo " git push"
@@ -55,7 +64,7 @@ spec:
       echo
 
       git add k8s/kustomization.yaml
-      git commit -m 'deploy image $IMAGE_DIGEST'
-      git push
+      git commit -m "deploy image function@$IMAGE_DIGEST"
+      git push origin HEAD:gitops
 
       exit 0
