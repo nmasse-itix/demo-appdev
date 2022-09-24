@@ -3,8 +3,7 @@ kind: PipelineRun
 metadata:
   name: demo-appdev-initial
   annotations:
-    argocd.argoproj.io/hook: PostSync 
-    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   serviceAccountName: tekton-robot
   pipelineRef:
