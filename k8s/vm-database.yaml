@@ -83,7 +83,7 @@ spec:
           resources:
             requests:
               storage: 30Gi
-  runStrategy: Manual
+  runStrategy: Always
   template:
     metadata:
       annotations:
