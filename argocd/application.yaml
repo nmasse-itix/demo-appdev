@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-appdev
+  namespace: openshift-gitops
+spec:
+  destination:
+    name: ''
+    namespace: demo-appdev
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: k8s
+    repoURL: 'https://github.com/nmasse-itix/demo-appdev.git'
+    targetRevision: gitops
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
