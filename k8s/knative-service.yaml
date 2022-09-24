@@ -8,5 +8,5 @@ spec:
       containers:
         - image: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
           env:
-            - name: TODO
-              value: "TODO"
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: "jdbc:postgresql://database/appli"

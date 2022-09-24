@@ -139,3 +139,21 @@ spec:
             secretRef:
               name: database-cloudinit
           name: cloudinitdisk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  ports:
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  - name: psql
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    kubevirt.io/domain: database
+  type: ClusterIP
