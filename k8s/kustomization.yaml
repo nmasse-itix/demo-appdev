@@ -13,7 +13,7 @@ resources:
 - vm-database.yaml
 - pipelinerun.yaml
 images:
-- digest: sha256:74fef467a1fe0e48e7c807376fa388a920ed42728bb42c4ce9c978703b0e3b2f
+- digest: sha256:680f9a3ba6fa176ba961f6e99e41a69200045ed26f72c62c8bacbcb69d9a1393
   name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
 configurations:
 - knative-image-transformer.yaml
