@@ -12,7 +12,7 @@ resources:
 - triggers.yaml
 - vm-database.yaml
 images:
-- digest: sha256:34100ab0ec1a1ed824625a923b2c424083649462d0b81465507e8f438e5f80d3
+- digest: sha256:5af5da26d3dfffbff60e3feeb6a641aa849b0aaac1b4adb70d772578a72193f5
   name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
 configurations:
 - knative-image-transformer.yaml
