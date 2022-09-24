@@ -10,6 +10,7 @@ resources:
 - task-maven-package.yaml
 - knative-service.yaml
 - triggers.yaml
+- vm-database.yaml
 images:
 - digest: sha256:c978b33482149cdbc7d11b444e5509146e480480bf713216a8d4a588c772ad26
   name: image-registry.openshift-image-registry.svc:5000/demo-appdev/function
