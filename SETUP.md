@@ -27,6 +27,12 @@ spec:
   storageClass: managed-nfs-storage
 ```
 
+* Fix ArgoCD configuration
+
+```sh
+oc patch argocd openshift-gitops -n openshift-gitops -p '{"spec":{"server":{"insecure":true,"route":{"enabled": true,"tls":{"termination":"edge","insecureEdgeTerminationPolicy":"Redirect"}}}}}' --type=merge
+```
+
 ## GitHub
 
 * Create a personal access token with access to all your public repos
@@ -39,14 +45,25 @@ m4 -D__GITHUB_TOKEN__=REDACTED secret.yaml | oc apply -f - -n demo-appdev
 * Get the route hostname of your Tekton Listener
 
 ```sh
-oc get route -n demo-appdev el-demo-appdev -o jsonpath='{.spec.host}'
+oc get route -n demo-appdev el-demo-appdev -o jsonpath='https://{.spec.host}'
 ```
 
 * Add a webhook to your GitHub repo
 
-  * Payload URL: `https://<route hostname>`
+  * Payload URL: *url above*
   * Content-Type: Application/json
   * Secret: `secret`
+
+* Get the route hostname of your OpenShift Gitops installation
+
+```sh
+oc get route -n openshift-gitops openshift-gitops-server -o jsonpath='https://{.spec.host}'
+```
+
+* Add a webhook to your GitHub repo
+
+  * Payload URL: *url above*
+  * Content-Type: Application/json
 
 ## Demo
 
