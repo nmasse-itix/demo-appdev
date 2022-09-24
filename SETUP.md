@@ -47,3 +47,13 @@ oc get route -n demo-appdev el-demo-appdev -o jsonpath='{.spec.host}'
   * Payload URL: `https://<route hostname>`
   * Content-Type: Application/json
   * Secret: `secret`
+
+## Demo
+
+* Create a new project
+
+```sh
+oc new-project demo-appdev
+oc label namespace demo-appdev argocd.argoproj.io/managed-by=openshift-gitops
+```
+
