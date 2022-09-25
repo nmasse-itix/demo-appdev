@@ -57,7 +57,7 @@ oc get route -n demo-appdev el-demo-appdev -o jsonpath='https://{.spec.host}'
 * Get the route hostname of your OpenShift Gitops installation
 
 ```sh
-oc get route -n openshift-gitops openshift-gitops-server -o jsonpath='https://{.spec.host}'
+oc get route -n openshift-gitops openshift-gitops-server -o jsonpath='https://{.spec.host}/api/webhook'
 ```
 
 * Add a webhook to your GitHub repo
@@ -73,4 +73,3 @@ oc get route -n openshift-gitops openshift-gitops-server -o jsonpath='https://{.
 oc new-project demo-appdev
 oc label namespace demo-appdev argocd.argoproj.io/managed-by=openshift-gitops
 ```
-
