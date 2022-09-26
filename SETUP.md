@@ -33,6 +33,8 @@ spec:
 oc patch argocd openshift-gitops -n openshift-gitops -p '{"spec":{"server":{"insecure":true,"route":{"enabled": true,"tls":{"termination":"edge","insecureEdgeTerminationPolicy":"Redirect"}}}}}' --type=merge
 ```
 
+* Create a project named `demo-appdev`
+
 ## GitHub
 
 * Create a personal access token with access to all your public repos
